@@ -1,0 +1,6 @@
+include LICENSE
+include HISTORY.md
+include Dockerfile
+include aflight/VERSION
+graft tests
+graft aflight
