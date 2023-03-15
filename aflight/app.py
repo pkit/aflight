@@ -1,3 +1,4 @@
+import os
 from typing import Callable
 
 import pyarrow
@@ -8,6 +9,10 @@ from aflight.logging import get_logger
 
 class AflightException(Exception):
     pass
+
+
+aflight_host = os.environ.get("AFLIGHT_HOST", "localhost")
+aflight_port = int(os.environ.get("AFLIGHT_PORT", "18080"))
 
 
 class AflightServer(flight.FlightServerBase):
@@ -55,7 +60,7 @@ class Aflight:
         self.commands = {}
         self.paths = {}
 
-    def serve(self, host="localhost", port=18080):
+    def serve(self, host=aflight_host, port=aflight_port):
         server = AflightServer(self, location=(host, port))
         server.serve()
 
