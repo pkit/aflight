@@ -33,4 +33,7 @@ setup(
     packages=find_packages(exclude=["example", "tests", ".github"]),
     install_requires=read_requirements("requirements.txt"),
     extras_require={"test": read_requirements("requirements-test.txt")},
+    entry_points={
+        "console_scripts": ["aflight = aflight.__main__:main"]
+    },
 )

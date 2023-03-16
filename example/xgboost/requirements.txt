@@ -1,4 +1,4 @@
-aflight~=0.1.0
+aflight~=0.2.0
 numpy~=1.24.2
 xgboost~=1.7.4
 pyarrow~=11.0.0

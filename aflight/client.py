@@ -12,6 +12,10 @@ def _in_memory_read(reader, sink):
     writer.close()
 
 
+def execute(data, **kwargs):
+    return command("", data, **kwargs)
+
+
 def predict(data, host="localhost", port=18080):
     """
     Run a prediction RPC against Aflight service

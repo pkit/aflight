@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Callable
 
 import pyarrow
@@ -28,7 +29,10 @@ class AflightServer(flight.FlightServerBase):
         if descriptor.descriptor_type == flight.DescriptorType.CMD:
             cmd = self.app.get_command(str(descriptor.command, "utf-8"))
             if not cmd:
-                raise AflightException("Unknown command")
+                # get default command
+                cmd = self.app.get_command("")
+                if not cmd:
+                    raise AflightException("Unknown command")
             return self._handle(cmd, context, reader, writer)
         elif descriptor.descriptor_type == flight.DescriptorType.PATH:
             path = self.app.get_path(str(descriptor.path, "utf-8"))
@@ -65,9 +69,9 @@ class Aflight:
         server.serve()
 
     def add_handler(self, handler, command=None, path=None):
-        if command:
+        if command is not None:
             self.commands[command] = handler
-        elif path:
+        elif path is not None:
             self.paths[path] = handler
         else:
             raise AflightException("should define command or path")
@@ -86,6 +90,14 @@ class Aflight:
 
         return decorator
 
+    def main(self):
+
+        def decorator(f: Callable[[pyarrow.RecordBatch], list[pyarrow.RecordBatch]]):
+            self.add_handler(f, command="")
+            return f
+
+        return decorator
+
     def path(self, path):
 
         def decorator(f: Callable[[pyarrow.RecordBatch], list[pyarrow.RecordBatch]]):
@@ -93,3 +105,30 @@ class Aflight:
             return f
 
         return decorator
+
+    def execute(self, command=b""):
+        handler = self.get_command(str(command, "utf-8"))
+        if not handler:
+            raise Exception("Cannot find handler for %s" % command)
+        is_first_batch = True
+        writer = None
+        done = False
+        with pyarrow.ipc.open_stream(sys.stdin.buffer) as reader:
+            while True:
+                try:
+                    batch = reader.read_next_batch()
+                    result = handler(batch)
+                except StopIteration:
+                    done = True
+                    if is_first_batch:
+                        result = handler(None)
+                if result:
+                    if is_first_batch:
+                        writer = pyarrow.ipc.new_stream(sys.stdout.buffer, result[0].schema)
+                        is_first_batch = False
+                    for b in result:
+                        writer.write_batch(b)
+                if done:
+                    break
+            if writer is not None:
+                writer.close()

@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ### Run server
 
 ```bash
-python app.py
+aflight
 ```
 
 Server will load `iris.xgb` model and serve predictions over `grpc://localhost:18080`

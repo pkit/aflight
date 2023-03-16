@@ -1,8 +1,12 @@
-# Aflight: simple Arrow Flight API builder
+# Aflight: simple Arrow Flight API builder/runner
+
+Loosely inspired by [Flask](https://github.com/pallets/flask)
 
 ### TL;DR
 
 Server:
+
+Create `app.py`
 
 ```python
 import aflight
@@ -13,9 +17,12 @@ app = aflight.Aflight()
 def predict(batch):
     result = do_something_with(batch)
     return [result]
+```
 
-app.serve()
+To Run:
 
+```bash
+aflight
 ```
 
 Client:
@@ -32,7 +39,7 @@ print(predict(data))
 
 Current `kserve`, `torch/serve` etc. APIs are too reliant on HTTP request/response paradigm
 
-Using Arrow as a data format and Arrow Flight as a service produces a much better interface:
+Using Arrow as a data format and Arrow Flight as a service API produces a much better interface:
 
 - standard
 - has schema
