@@ -5,7 +5,7 @@ from typing import Callable
 import pyarrow
 import pyarrow.flight as flight
 
-from aflight import get_logger
+from aflight.log import get_logger
 
 
 class AflightException(Exception):
