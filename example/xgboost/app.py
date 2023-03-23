@@ -16,6 +16,7 @@ def gen_names(n):
 
 
 @app.command("predict")
+@app.main()
 def predict(batch):
     table = pyarrow.Table.from_batches([batch])
     arr2d = np.array([col.to_numpy() for col in table])
