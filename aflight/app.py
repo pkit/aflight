@@ -112,23 +112,24 @@ class Aflight:
             raise Exception("Cannot find handler for %s" % command)
         is_first_batch = True
         writer = None
-        done = False
         with pyarrow.ipc.open_stream(sys.stdin.buffer) as reader:
             while True:
                 try:
                     batch = reader.read_next_batch()
                     result = handler(batch)
-                except StopIteration:
-                    done = True
-                    if is_first_batch:
-                        result = handler(None)
-                if result:
                     if is_first_batch:
                         writer = pyarrow.ipc.new_stream(sys.stdout.buffer, result[0].schema)
                         is_first_batch = False
                     for b in result:
                         writer.write_batch(b)
-                if done:
+                except StopIteration:
+                    if is_first_batch and not result:
+                        # no result here means that there was no input stream, run the handler with None
+                        result = handler(None)
+                        if result:
+                            writer = pyarrow.ipc.new_stream(sys.stdout.buffer, result[0].schema)
+                            for b in result:
+                                writer.write_batch(b)
                     break
             if writer is not None:
                 writer.close()
